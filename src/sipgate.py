@@ -7,6 +7,9 @@ API_URL = 'https://{user}:{password}@samurai.sipgate.net/RPC2'
 CLIENT_NAME = 'pysipgate'
 CLIENT_VENDOR = 'http://chaossource.net/'
 
+def sanitize_number(number):
+    return re.sub('[\s\-]', '', number)
+
 class SipgateConnection:
 
     def __init__(self, user, password):
@@ -71,9 +74,11 @@ class SipgateEndpoint:
                 return self.uri
 
     def voice(self, number):
+        remote_uri = 'sip:{}@sipgate.de'.format(sanitize_number(number))
+
         data = {
                 'LocalUri': self.uri,
-                'RemoteUri': 'sip:{number}@sipgate.de'.format(number=number),
+                'RemoteUri': remote_uri,
                 'TOS': 'voice',
                 }
 
