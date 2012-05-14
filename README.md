@@ -9,6 +9,8 @@ around a tray icon using this API.
 The GUI offers the following features:
 
 * initiate voice calls
+* detect phone numbers from clipboard
+* show account balance
 
 ## Setup
 
