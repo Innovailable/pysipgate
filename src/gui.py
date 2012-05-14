@@ -1,13 +1,72 @@
 import sys
+import re
 import os.path
 import ConfigParser
 
 from PyQt4 import QtGui
-from PyQt4.QtCore import SIGNAL, SLOT
+from PyQt4.QtCore import SIGNAL, SLOT, Qt
 
 from sipgate import SipgateConnection
 
 CONFIG_FILE = "~/.pysipgate"
+
+class EndpointSelection(QtGui.QComboBox):
+
+    def __init__(self, endpoints, parent=None):
+        self.endpoints = endpoints
+
+        QtGui.QComboBox.__init__(self, parent)
+
+        for index, endpoint in enumerate(endpoints):
+            self.addItem(endpoint.name())
+
+            if endpoint.default:
+                self.setCurrentIndex(index)
+
+    def currentEndpoint(self):
+        return self.endpoints[self.currentIndex()]
+
+class CallWidget(QtGui.QWidget):
+
+    def __init__(self, con, parent=None):
+        self.con = con
+
+        QtGui.QWidget.__init__(self, parent)
+
+        self.setWindowFlags(Qt.Dialog)
+        self.resize(250, 60)
+
+        layout = QtGui.QGridLayout(self)
+
+        self.number = number = QtGui.QLineEdit(self)
+        layout.addWidget(number, 0, 0, 1, 2)
+
+        self.endpoint = endpoint = EndpointSelection(con.voice_endpoints(), self)
+        layout.addWidget(endpoint, 1, 0)
+
+        button = QtGui.QPushButton("Call", self)
+        layout.addWidget(button, 1, 1)
+
+        self.connect(button, SIGNAL('clicked()'), self.call)
+        self.connect(number, SIGNAL('returnPressed()'), self.call)
+
+    def showEvent(self, event):
+        clipped = QtGui.QApplication.clipboard().text()
+
+        if re.match('[\d\s\-]{5}', clipped):
+            self.number.setText(clipped)
+        else:
+            self.number.setText('')
+
+        self.number.setFocus(Qt.ActiveWindowFocusReason)
+
+    def call(self):
+        endpoint = self.endpoint.currentEndpoint()
+        number = self.number.text()
+
+        self.hide()
+
+        endpoint.voice(str(number))
 
 class Tray(QtGui.QSystemTrayIcon):
 
@@ -17,11 +76,14 @@ class Tray(QtGui.QSystemTrayIcon):
 
         icon = QtGui.QIcon("img/phone_icon.png")
 
+        self.call = call = CallWidget(con)
+
         QtGui.QSystemTrayIcon.__init__(self, icon, parent)
 
         self.menu = menu = QtGui.QMenu()
 
         callAction = menu.addAction("Call")
+        self.connect(callAction, SIGNAL('triggered()'), call.show)
 
         menu.addSeparator()
 
@@ -32,6 +94,7 @@ class Tray(QtGui.QSystemTrayIcon):
 
 def main():
     app = QtGui.QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
 
     config = ConfigParser.ConfigParser()
     config.read(os.path.expanduser(CONFIG_FILE))

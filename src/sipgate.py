@@ -61,6 +61,7 @@ class SipgateEndpoint:
         self.uri = data['SipUri']
         self.tos = data['TOS']
         self.alias = data.get('UriAlias', None)
+        self.default = data['DefaultUri']
 
     def name(self):
         if self.alias:
