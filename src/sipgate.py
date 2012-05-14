@@ -5,7 +5,7 @@ from xmlrpclib import ServerProxy
 API_URL = 'https://{user}:{password}@samurai.sipgate.net/RPC2'
 
 CLIENT_NAME = 'pysipgate'
-CLIENT_VENDOR = 'http://chaossource.net/'
+CLIENT_VENDOR = 'https://github.com/thammi/pysipgate'
 
 def sanitize_number(number):
     return re.sub('\D', '', number)
