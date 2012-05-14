@@ -8,11 +8,14 @@ CLIENT_NAME = 'pysipgate'
 CLIENT_VENDOR = 'https://github.com/thammi/pysipgate'
 
 def sanitize_number(number):
+    """Tries to sanitize a phone number for usabe by the Sipgate API"""
     return re.sub('\D', '', number)
 
 class SipgateConnection:
+    """Represents a connection to the Sipgate API Server"""
 
     def __init__(self, user, password):
+        """Create a connection object for the given username"""
         url = API_URL.format(user=user, password=password)
 
         self.server = server = ServerProxy(url)
@@ -32,30 +35,53 @@ class SipgateConnection:
                 self.default_ep = ep
 
     def voice(self, number):
+        """Initiate a voice call with the given number.
+
+        The default endpoint is used to initiate the voice call.
+
+        """
         self.default_ep.call(number)
 
     def voice_endpoints(self):
+        """Returns all endpoints which can handle voice calls"""
         return self.tos_endpoints('voice')
 
     def fax_endpoints(self):
+        """Returns all endpoints which can handle fax messages"""
         return self.tos_endpoints('fax')
 
     def tos_endpoints(self, tos):
+        """Returns all endpoints which support the given type of service"""
         return filter(lambda ep: tos in ep.tos, self.endpoints)
 
     def balance(self):
+        """Returns the balance of the account
+
+        The result is a tuple consisting of the balance and the currency it is
+        represented in.
+
+        """
         balance = self.server.samurai.BalanceGet()['CurrentBalance']
         return (balance['TotalIncludingVat'], balance['Currency'])
 
     def greeting(self):
+        """Returns an object containing the greeting used for this account"""
         res = self.server.samurai.UserdataGreetingGet()
         del res['StatusCode']
         del res['StatusString']
         return res
 
 class SipgateEndpoint:
+    """Represents an endpoint in the Sipgate API.
+
+    Endpoints can serve different types of service and multiple devices can be
+    connected to an endpoint.
+
+    """
 
     def __init__(self, con, data):
+        """Creates an endpoint object for a connection"""
+
         self.con = con
 
         self.uri = data['SipUri']
@@ -64,6 +90,8 @@ class SipgateEndpoint:
         self.default = data['DefaultUri']
 
     def name(self):
+        """Returns a name which is as humanly readable as possible"""
+
         if self.alias:
             return self.alias
         else:
@@ -75,6 +103,8 @@ class SipgateEndpoint:
                 return self.uri
 
     def voice(self, number):
+        """Initiate a voice call with the given number."""
+
         remote_uri = 'sip:{}@sipgate.de'.format(sanitize_number(number))
 
         data = {
@@ -88,15 +118,22 @@ class SipgateEndpoint:
         return SipgateSession(self.con, res['SessionID'])
 
 class SipgateSession:
+    """Represents a session between a local and a remote endpoint"""
 
     def __init__(self, con, sid):
+        """Creates a sesseion object representing a Sipgate session"""
+
         self.con = con
         self.sid = sid
 
     def state(self):
+        """Returns the human readable state of the session"""
+
         res = self.con.server.samurai.SessionStatusGet({'SessionID': self.sid})
         return res['SessionStatus']
 
     def close(self):
+        """Closes the session"""
+
         self.con.server.samurai.SessionClose({'SessionID': self.sid})
 
