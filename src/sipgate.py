@@ -8,7 +8,7 @@ CLIENT_NAME = 'pysipgate'
 CLIENT_VENDOR = 'http://chaossource.net/'
 
 def sanitize_number(number):
-    return re.sub('[\s\-]', '', number)
+    return re.sub('\D', '', number)
 
 class SipgateConnection:
 
