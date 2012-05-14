@@ -85,12 +85,20 @@ class Tray(QtGui.QSystemTrayIcon):
         callAction = menu.addAction("Call")
         self.connect(callAction, SIGNAL('triggered()'), call.show)
 
+        balanceAction = menu.addAction("Balance")
+        self.connect(balanceAction, SIGNAL('triggered()'), self.balance)
+
         menu.addSeparator()
 
         exitAction = menu.addAction("Exit")
         self.connect(exitAction, SIGNAL('triggered()'), QtGui.QApplication.quit)
 
         self.setContextMenu(menu)
+
+    def balance(self):
+        balance, unit = self.con.balance()
+        msg = "Your account balance is {balance} {unit}".format(balance=balance, unit=unit)
+        QtGui.QMessageBox.information(None, "Balance", msg)
 
 def main():
     app = QtGui.QApplication(sys.argv)
