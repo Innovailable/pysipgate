@@ -35,10 +35,10 @@ class SipgateConnection:
         self.default_ep.call(number)
 
     def voice_endpoints(self):
-        return tos_endpoints('voice')
+        return self.tos_endpoints('voice')
 
     def fax_endpoints(self):
-        return tos_endpoints('fax')
+        return self.tos_endpoints('fax')
 
     def tos_endpoints(self, tos):
         return filter(lambda ep: tos in ep.tos, self.endpoints)
