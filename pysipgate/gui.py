@@ -6,9 +6,17 @@ import ConfigParser
 from PyQt4 import QtGui
 from PyQt4.QtCore import SIGNAL, SLOT, Qt
 
-from sipgate import *
+from pysipgate.sipgate import *
 
 CONFIG_FILE = "~/.pysipgate"
+
+def module_path():
+    fp = os.path.realpath(__file__)
+
+    for _ in range(2):
+        fp = os.path.split(fp)[0]
+
+    return fp
 
 def errorbox(fun):
     def decorated(*args, **kargs):
@@ -85,7 +93,7 @@ class Tray(QtGui.QSystemTrayIcon):
         self.con = con
         self.parent = parent
 
-        icon = QtGui.QIcon("img/phone_icon.png")
+        icon = QtGui.QIcon("%s/img/phone_icon.png" % module_path())
 
         self.call = call = CallWidget(con)
 
