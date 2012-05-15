@@ -8,12 +8,7 @@ CLIENT_NAME = 'pysipgate'
 CLIENT_VENDOR = 'https://github.com/thammi/pysipgate'
 
 class SipgateException(Exception):
-
-    def __init__(self, msg):
-        self.msg = msg
-
-    def __str__(self):
-        return self.msg
+    pass
 
 class SipgateAuthException(SipgateException):
     pass
