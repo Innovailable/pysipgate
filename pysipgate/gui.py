@@ -71,7 +71,7 @@ class CallWidget(QtGui.QWidget):
     def showEvent(self, event):
         clipped = QtGui.QApplication.clipboard().text()
 
-        if re.match('[\d\s\-+]+$', clipped):
+        if re.match('[\d\s\-+/]+$', clipped):
             self.number.setText(clipped)
         else:
             self.number.setText('')
