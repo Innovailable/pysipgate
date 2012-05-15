@@ -6,7 +6,7 @@ import ConfigParser
 from PyQt4 import QtGui
 from PyQt4.QtCore import SIGNAL, SLOT, Qt
 
-from sipgate import SipgateConnection
+from sipgate import *
 
 CONFIG_FILE = "~/.pysipgate"
 
@@ -110,12 +110,20 @@ def main():
     user = config.get('account', 'user')
     password = config.get('account', 'password')
 
-    con = SipgateConnection(user, password)
+    try:
+        con = SipgateConnection(user, password)
+    except SipgateAuthException:
+        msg = "Could not authenticate with Sipgate server. Please adjust your account settings in '%s'" % CONFIG_FILE
+        QtGui.QMessageBox.critical(None, "Authentication Error", msg)
+        return 1
+    except SipgateException as err:
+        QtGui.QMessageBox.critical(None, "Error", str(err))
+        return 1
+    else:
+        tray = Tray(con)
+        tray.show()
 
-    tray = Tray(con)
-    tray.show()
-
-    return app.exec_()
+        return app.exec_()
 
 if __name__ == '__main__':
     sys.exit(main())
