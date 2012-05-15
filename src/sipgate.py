@@ -1,6 +1,6 @@
 import re
 
-from xmlrpclib import ServerProxy, ProtocolError
+from xmlrpclib import ServerProxy, ProtocolError, Error, Fault
 
 API_URL = 'https://{user}:{password}@samurai.sipgate.net/RPC2'
 
@@ -13,13 +13,14 @@ class SipgateException(Exception):
         self.msg = msg
 
     def __str__(self):
-        return msg
+        return self.msg
 
 class SipgateAuthException(SipgateException):
     pass
 
 def exception_converter(fun):
     def decorated(*args, **kargs):
+        # xmlrpclib has different kinds of excptions which are incompatible ...
         try:
             fun(*args, **kargs)
         except ProtocolError as e:
@@ -27,6 +28,8 @@ def exception_converter(fun):
                 raise SipgateAuthException(e.errmsg)
             else:
                 raise SipgateException(e.errmsg)
+        except Fault as e:
+            raise SipgateException(e.faultString)
 
     return decorated
 
