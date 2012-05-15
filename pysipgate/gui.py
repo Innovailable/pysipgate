@@ -21,7 +21,7 @@ def module_path():
 def errorbox(fun):
     def decorated(*args, **kargs):
         try:
-            fun(*args, **kargs)
+            return fun(*args, **kargs)
         except SipgateException as err:
             msg = "The error '%s' occured." % str(err)
             QtGui.QMessageBox.critical(None, "Error", msg)
@@ -65,8 +65,8 @@ class CallWidget(QtGui.QWidget):
         button = QtGui.QPushButton("Call", self)
         layout.addWidget(button, 1, 1)
 
-        self.connect(button, SIGNAL('clicked()'), self.call)
-        self.connect(number, SIGNAL('returnPressed()'), self.call)
+        button.clicked.connect(self.call)
+        number.returnPressed.connect(self.call)
 
     def showEvent(self, event):
         clipped = QtGui.QApplication.clipboard().text()
@@ -79,7 +79,7 @@ class CallWidget(QtGui.QWidget):
         self.number.setFocus(Qt.ActiveWindowFocusReason)
 
     @errorbox
-    def call(self):
+    def call(self, *args):
         endpoint = self.endpoint.currentEndpoint()
         number = self.number.text()
 
@@ -102,20 +102,26 @@ class Tray(QtGui.QSystemTrayIcon):
         self.menu = menu = QtGui.QMenu()
 
         callAction = menu.addAction("Call")
-        self.connect(callAction, SIGNAL('triggered()'), call.show)
+        callAction.triggered.connect(call.show)
 
         balanceAction = menu.addAction("Balance")
-        self.connect(balanceAction, SIGNAL('triggered()'), self.balance)
+        balanceAction.triggered.connect(self.balance)
 
         menu.addSeparator()
 
         exitAction = menu.addAction("Exit")
-        self.connect(exitAction, SIGNAL('triggered()'), QtGui.QApplication.quit)
+        exitAction.triggered.connect(QtGui.QApplication.quit)
+
+        self.activated.connect(self.onActivate)
 
         self.setContextMenu(menu)
 
+    def onActivate(self, reason):
+        if reason == self.DoubleClick:
+            self.call.show()
+
     @errorbox
-    def balance(self):
+    def balance(self, *args):
         balance, unit = self.con.balance()
         msg = "Your account balance is {balance} {unit}".format(balance=balance, unit=unit)
         QtGui.QMessageBox.information(None, "Balance", msg)

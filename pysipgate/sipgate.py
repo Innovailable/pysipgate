@@ -17,7 +17,7 @@ def exception_converter(fun):
     def decorated(*args, **kargs):
         # xmlrpclib has different kinds of excptions which are incompatible ...
         try:
-            fun(*args, **kargs)
+            return fun(*args, **kargs)
         except ProtocolError as e:
             if e.errcode == 401:
                 raise SipgateAuthException(e.errmsg)
