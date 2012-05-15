@@ -1,11 +1,35 @@
 import re
 
-from xmlrpclib import ServerProxy
+from xmlrpclib import ServerProxy, ProtocolError
 
 API_URL = 'https://{user}:{password}@samurai.sipgate.net/RPC2'
 
 CLIENT_NAME = 'pysipgate'
 CLIENT_VENDOR = 'https://github.com/thammi/pysipgate'
+
+class SipgateException(Exception):
+
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return msg
+
+class SipgateAuthException(SipgateException):
+    pass
+
+def exception_converter(fun):
+    def decorated(*args, **kargs):
+        try:
+            fun(*args, **kargs)
+        except ProtocolError as e:
+            if e.errcode == 401:
+                raise SipgateAuthException(e.errmsg)
+            else:
+                raise SipgateException(e.errmsg)
+
+    return decorated
+
 
 def sanitize_number(number):
     """Tries to sanitize a phone number for usabe by the Sipgate API"""
@@ -14,6 +38,7 @@ def sanitize_number(number):
 class SipgateConnection:
     """Represents a connection to the Sipgate API Server"""
 
+    @exception_converter
     def __init__(self, user, password):
         """Create a connection object for the given username"""
         url = API_URL.format(user=user, password=password)
@@ -54,6 +79,7 @@ class SipgateConnection:
         """Returns all endpoints which support the given type of service"""
         return filter(lambda ep: tos in ep.tos, self.endpoints)
 
+    @exception_converter
     def balance(self):
         """Returns the balance of the account
 
@@ -64,6 +90,7 @@ class SipgateConnection:
         balance = self.server.samurai.BalanceGet()['CurrentBalance']
         return (balance['TotalIncludingVat'], balance['Currency'])
 
+    @exception_converter
     def greeting(self):
         """Returns an object containing the greeting used for this account"""
         res = self.server.samurai.UserdataGreetingGet()
@@ -102,6 +129,7 @@ class SipgateEndpoint:
             else:
                 return self.uri
 
+    @exception_converter
     def voice(self, number):
         """Initiate a voice call with the given number."""
 
@@ -126,12 +154,14 @@ class SipgateSession:
         self.con = con
         self.sid = sid
 
+    @exception_converter
     def state(self):
         """Returns the human readable state of the session"""
 
         res = self.con.server.samurai.SessionStatusGet({'SessionID': self.sid})
         return res['SessionStatus']
 
+    @exception_converter
     def close(self):
         """Closes the session"""
 
