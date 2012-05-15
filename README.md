@@ -14,6 +14,11 @@ The GUI offers the following features:
 
 ## Setup
 
+There is a `setup.py` for automated installation. To install `pysipgate` simply
+call:
+
+    ./setup.py install --user
+
 The GUI is configured in the file `~/.pysipgate`. It should look like this:
 
     [account]
