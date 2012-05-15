@@ -10,6 +10,16 @@ from sipgate import *
 
 CONFIG_FILE = "~/.pysipgate"
 
+def errorbox(fun):
+    def decorated(*args, **kargs):
+        try:
+            fun(*args, **kargs)
+        except SipgateException as err:
+            msg = "The error '%s' occured." % str(err)
+            QtGui.QMessageBox.critical(None, "Error", msg)
+
+    return decorated
+
 class EndpointSelection(QtGui.QComboBox):
 
     def __init__(self, endpoints, parent=None):
@@ -60,6 +70,7 @@ class CallWidget(QtGui.QWidget):
 
         self.number.setFocus(Qt.ActiveWindowFocusReason)
 
+    @errorbox
     def call(self):
         endpoint = self.endpoint.currentEndpoint()
         number = self.number.text()
@@ -95,6 +106,7 @@ class Tray(QtGui.QSystemTrayIcon):
 
         self.setContextMenu(menu)
 
+    @errorbox
     def balance(self):
         balance, unit = self.con.balance()
         msg = "Your account balance is {balance} {unit}".format(balance=balance, unit=unit)
