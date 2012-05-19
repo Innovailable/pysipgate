@@ -1,4 +1,7 @@
+"""A high level wrapper around the Sipgate XML-RPC API"""
+
 import re
+from functools import wraps
 
 from xmlrpclib import ServerProxy, ProtocolError, Error, Fault
 
@@ -8,12 +11,17 @@ CLIENT_NAME = 'pysipgate'
 CLIENT_VENDOR = 'https://github.com/thammi/pysipgate'
 
 class SipgateException(Exception):
+    """Exception thrown on errors in the Sipgate API"""
     pass
 
 class SipgateAuthException(SipgateException):
+    """Exception thrown if the login data was not accepted"""
     pass
 
 def exception_converter(fun):
+    """Decorator converting xmlrpclib Exceptions into SipagteExceptions"""
+
+    @wraps(fun)
     def decorated(*args, **kargs):
         # xmlrpclib has different kinds of excptions which are incompatible ...
         try:
