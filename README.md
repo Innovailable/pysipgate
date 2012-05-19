@@ -10,6 +10,7 @@ The GUI offers the following features:
 
 * initiate voice calls
 * detect phone numbers from clipboard
+* SMS functionality
 * show account balance
 
 ## Setup
@@ -24,4 +25,8 @@ The GUI is configured in the file `~/.pysipgate`. It should look like this:
     [account]
     user: thammi
     password: 123456
+
+## Bugs/TODOs
+
+* SMS need a phone number with national area code
 
