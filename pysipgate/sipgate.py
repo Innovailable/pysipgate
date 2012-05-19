@@ -104,6 +104,18 @@ class SipgateConnection:
         del res['StatusString']
         return res
 
+    @exception_converter
+    def text(self, number, text):
+        remote_uri = 'sip:{}@sipgate.de'.format(sanitize_number(number))
+
+        data = {
+                'RemoteUri': remote_uri,
+                'TOS': 'text',
+                'Content': text,
+                }
+
+        res = self.server.samurai.SessionInitiate(data)
+
 class SipgateEndpoint:
     """Represents an endpoint in the Sipgate API.
 
