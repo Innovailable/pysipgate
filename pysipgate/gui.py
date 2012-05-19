@@ -44,6 +44,66 @@ class EndpointSelection(QtGui.QComboBox):
     def currentEndpoint(self):
         return self.endpoints[self.currentIndex()]
 
+class SmsWidget(QtGui.QWidget):
+
+    def __init__(self, con, parent=None):
+        self.con = con
+
+        QtGui.QWidget.__init__(self, parent)
+
+        self.setWindowFlags(Qt.Dialog)
+        self.resize(300, 200)
+
+        layout = QtGui.QGridLayout(self)
+        layout.setColumnStretch(0, 1)
+        layout.setColumnStretch(1, 2)
+
+        self.number = number = QtGui.QLineEdit(self)
+        layout.addWidget(number, 0, 0, 1, 2)
+
+        self.text = text = QtGui.QTextEdit(self)
+        layout.addWidget(text, 1, 0, 1, 2)
+
+        self. left = left = QtGui.QLabel(self)
+        layout.addWidget(left, 2, 0, Qt.AlignHCenter)
+
+        button = QtGui.QPushButton("Send", self)
+        layout.addWidget(button, 2, 1)
+
+        button.clicked.connect(self.send)
+        text.textChanged.connect(self.updateLeft)
+
+    def showEvent(self, event):
+        clipped = QtGui.QApplication.clipboard().text()
+
+        if re.match('[\d\s\-+/]+$', clipped):
+            self.number.setText(clipped)
+            self.text.setFocus(Qt.ActiveWindowFocusReason)
+        else:
+            self.number.setText("")
+            self.number.setFocus(Qt.ActiveWindowFocusReason)
+
+        self.text.setText("")
+
+    def updateLeft(self):
+        written = len(self.text.toPlainText())
+
+        if written <= 160:
+            chars_left = 160 - written
+        else:
+            chars_left = 149 - (written - 11) % 150
+
+        self.left.setText(str(chars_left))
+
+    @errorbox
+    def send(self, *args):
+        number = unicode(self.number.text())
+        text = unicode(self.text.toPlainText())
+
+        self.hide()
+
+        self.con.text(number, text)
+
 class CallWidget(QtGui.QWidget):
 
     def __init__(self, con, parent=None):
@@ -96,6 +156,7 @@ class Tray(QtGui.QSystemTrayIcon):
         icon = QtGui.QIcon("%s/img/phone_icon.png" % module_path())
 
         self.call = call = CallWidget(con)
+        self.sms = sms = SmsWidget(con)
 
         QtGui.QSystemTrayIcon.__init__(self, icon, parent)
 
@@ -103,6 +164,9 @@ class Tray(QtGui.QSystemTrayIcon):
 
         callAction = menu.addAction("Call")
         callAction.triggered.connect(call.show)
+
+        smsAction = menu.addAction("SMS")
+        smsAction.triggered.connect(sms.show)
 
         balanceAction = menu.addAction("Balance")
         balanceAction.triggered.connect(self.balance)
