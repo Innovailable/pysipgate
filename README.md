@@ -26,6 +26,20 @@ The GUI is configured in the file `~/.pysipgate`. It should look like this:
     user: thammi
     password: 123456
 
+## Usage
+
+To use the GUI (which is based around a tray icon) simply call
+
+    pysipgate
+
+There are also some command line options. You can send an SMS with one simple comand
+
+    echo "Hello World!" | pysipgate --sms 49123456789
+
+To initiate a voice call from the command line run
+
+   pysipgate --call 0123456789
+
 ## Bugs/TODOs
 
 * SMS need a phone number with national area code
