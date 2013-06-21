@@ -2,13 +2,33 @@
 
 import re
 from functools import wraps
+import configparser
+import os.path
 
-from xmlrpclib import ServerProxy, ProtocolError, Error, Fault
+from xmlrpc.client import ServerProxy, ProtocolError, Error, Fault
 
 API_URL = 'https://{user}:{password}@samurai.sipgate.net/RPC2'
 
 CLIENT_NAME = 'pysipgate'
 CLIENT_VENDOR = 'https://github.com/thammi/pysipgate'
+
+def connection_from_config(path):
+    full_path = os.path.expanduser(path)
+
+    if not os.path.exists(full_path):
+        raise SipgateException("Unable to find config file '%s'" % path)
+
+    config = configparser.ConfigParser()
+    config.read(os.path.expanduser(full_path))
+
+    try:
+        user = config.get('account', 'user')
+        password = config.get('account', 'password')
+    except configparser.Error:
+        raise SipgateException("Invalid configuration file")
+
+
+    return SipgateConnection(user, password)
 
 class SipgateException(Exception):
     """Exception thrown on errors in the Sipgate API"""
@@ -23,7 +43,7 @@ def exception_converter(fun):
 
     @wraps(fun)
     def decorated(*args, **kargs):
-        # xmlrpclib has different kinds of excptions which are incompatible ...
+        # xmlrpclib has different kinds of exceptions which are incompatible ...
         try:
             return fun(*args, **kargs)
         except ProtocolError as e:
@@ -71,7 +91,7 @@ class SipgateConnection:
         The default endpoint is used to initiate the voice call.
 
         """
-        self.default_ep.call(number)
+        self.default_ep.voice(number)
 
     def voice_endpoints(self):
         """Returns all endpoints which can handle voice calls"""
@@ -83,7 +103,7 @@ class SipgateConnection:
 
     def tos_endpoints(self, tos):
         """Returns all endpoints which support the given type of service"""
-        return filter(lambda ep: tos in ep.tos, self.endpoints)
+        return [ep for ep in self.endpoints if tos in ep.tos]
 
     @exception_converter
     def balance(self):

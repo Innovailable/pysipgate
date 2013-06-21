@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 from setuptools import setup
@@ -32,7 +32,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'pysipgate = pysipgate.gui:main',
+            'pysipgate = pysipgate.main:main',
             ],
         },
 )

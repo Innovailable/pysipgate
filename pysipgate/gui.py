@@ -1,14 +1,11 @@
 import sys
 import re
 import os.path
-import ConfigParser
 
 from PyQt4 import QtGui
-from PyQt4.QtCore import SIGNAL, SLOT, Qt
+from PyQt4.QtCore import Qt
 
 from pysipgate.sipgate import *
-
-CONFIG_FILE = "~/.pysipgate"
 
 def module_path():
     fp = os.path.realpath(__file__)
@@ -97,8 +94,8 @@ class SmsWidget(QtGui.QWidget):
 
     @errorbox
     def send(self, *args):
-        number = unicode(self.number.text())
-        text = unicode(self.text.toPlainText())
+        number = str(self.number.text())
+        text = str(self.text.toPlainText())
 
         self.hide()
 
@@ -190,18 +187,12 @@ class Tray(QtGui.QSystemTrayIcon):
         msg = "Your account balance is {balance} {unit}".format(balance=balance, unit=unit)
         QtGui.QMessageBox.information(None, "Balance", msg)
 
-def main():
+def start(config):
     app = QtGui.QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
 
-    config = ConfigParser.ConfigParser()
-    config.read(os.path.expanduser(CONFIG_FILE))
-
-    user = config.get('account', 'user')
-    password = config.get('account', 'password')
-
     try:
-        con = SipgateConnection(user, password)
+        con = connection_from_config(config)
     except SipgateAuthException:
         msg = "Could not authenticate with Sipgate server. Please adjust your account settings in '%s'" % CONFIG_FILE
         QtGui.QMessageBox.critical(None, "Authentication Error", msg)
@@ -214,6 +205,3 @@ def main():
         tray.show()
 
         return app.exec_()
-
-if __name__ == '__main__':
-    sys.exit(main())
