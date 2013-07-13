@@ -18,7 +18,7 @@ setup(
     description = ("Client for the Sipgate API"),
     license = "GPLv3",
     keywords = "sipgate",
-    url = "http://www.chaossource.net/hardcode_haml/",
+    url = "https://github.com/thammi/pysipgate",
     packages=['pysipgate'],
     data_files=[('img', ['img/phone_icon.png'])],
     long_description=read('README.md'),
