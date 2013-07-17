@@ -12,7 +12,7 @@ def read(fname):
 
 setup(
     name = "pysipgate",
-    version = "0.1.0",
+    version = "0.1.1",
     author = "Thammi",
     author_email = "thammi@chaossource.net",
     description = ("Client for the Sipgate API"),
