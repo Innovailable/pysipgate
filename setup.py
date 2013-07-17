@@ -23,6 +23,7 @@ setup(
     data_files=[('img', ['img/phone_icon.png'])],
     long_description=read('README.md'),
     classifiers=[
+        "Programming Language :: Python :: 3",
         "Development Status :: 4 - Beta",
         "Environment :: X11 Applications :: Qt",
         "Intended Audience :: End Users/Desktop",
