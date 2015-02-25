@@ -13,6 +13,9 @@ def main():
             help="Send an SMS", metavar="NUMBER")
     parser.add_option("-c", "--call",
             help="Initiate a phone call", metavar="NUMBER")
+    parser.add_option("-b", "--balance", action="store_true",
+            default=False, dest="balance",
+            help="Get account balance")
 
     (options, args) = parser.parse_args()
 
@@ -21,7 +24,7 @@ def main():
     else:
         config_file = DEFAULT_CONFIG_FILE
 
-    if not any([options.sms, options.call]):
+    if not any([options.sms, options.call, options.balance]):
         from pysipgate import gui
         gui.start(config_file)
     else:
@@ -35,6 +38,9 @@ def main():
             elif options.call:
                 print("Initiating voice call ...")
                 con.voice(options.call)
+            elif options.balance:
+                (amount, currency) = con.balance()
+                print("Account balance:", amount, currency)
         except SipgateAuthException:
             msg = "Could not authenticate with Sipgate server. Please adjust your account settings in '%s'" % config_file
             print(msg)
